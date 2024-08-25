@@ -63,6 +63,8 @@ class SubscriptionBuilder
      */
     protected $billingCycleAnchor = null;
 
+    protected $billingCycleAnchorConfig = null;
+
     /**
      * The metadata to apply to the subscription.
      *
@@ -200,6 +202,19 @@ class SubscriptionBuilder
         }
 
         $this->billingCycleAnchor = $date;
+
+        return $this;
+    }
+
+    /**
+     * Change the billing cycle anchor on a subscription creation.
+     *
+     * @param  \DateTimeInterface|int  $date
+     * @return $this
+     */
+    public function setBillingCycleAnchorConfig($config)
+    {
+        $this->billingCycleAnchorConfig = $config;
 
         return $this;
     }
@@ -395,7 +410,6 @@ class SubscriptionBuilder
     {
         $payload = array_filter([
             'automatic_tax' => $this->automaticTaxPayload(),
-            'billing_cycle_anchor' => $this->billingCycleAnchor,
             'coupon' => $this->couponId,
             'expand' => ['latest_invoice.payment_intent'],
             'metadata' => $this->metadata,
@@ -406,6 +420,14 @@ class SubscriptionBuilder
             'trial_end' => $this->getTrialEndForPayload(),
             'off_session' => true,
         ]);
+
+        if ($this->billingCycleAnchor) {
+            $payload['billing_cycle_anchor'] = $this->billingCycleAnchor;
+        }
+
+        if ($this->billingCycleAnchorConfig) {
+            $payload['billing_cycle_anchor_config'] = $this->billingCycleAnchorConfig;
+        }
 
         if ($taxRates = $this->getTaxRatesForPayload()) {
             $payload['default_tax_rates'] = $taxRates;
